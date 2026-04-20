@@ -17,7 +17,7 @@ This repository prioritizes reproducible agricultural ML research:
 2. Keep changes scoped and include tests when possible.
 3. Update `docs/` when assumptions or methodology change.
 4. Run:
-   - `python -m pytest tests/ -v`
+   - `.venv/bin/python -m pytest tests/ -v`
    - relevant scripts in `experiments/`
 
 ## Style

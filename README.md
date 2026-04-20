@@ -56,13 +56,16 @@ All predictions are **persisted per field** with full history and CSV export sup
 flowchart LR
     Browser[Browser / HTTP Client] --> Flask[Flask App Factory]
     Flask --> Sklearn[sklearn Pipelines + Pickles]
-    Flask --> Engine[fieldsense.engine<br/>Health rollup + Alerts]
+    Flask --> Services[app/services shim]
+    Services --> Engine[fieldsense.engine<br/>Health rollup + Alerts]
     Flask --> SQLite[SQLite<br/>Fields + Predictions]
-    Flask --> ONNX[ONNX Runtime<br/>Leaf Analysis]
+    Flask --> Leaf[Leaf Inference]
+    Leaf --> ONNX[ONNX Runtime<br/>default]
+    Leaf -. fallback .-> Torch[PyTorch .pth<br/>if ONNX missing]
 ```
 
 **Request flow example (crop prediction)**:
-Resolve field -> Build feature vector -> Run model -> Compute deterministic intelligence rollup -> Persist prediction
+Resolve field -> Build feature vector -> Run model -> Compute deterministic intelligence rollup -> Persist `crop` + `unified` prediction rows
 
 ---
 
@@ -84,26 +87,49 @@ FieldSense/
 
 ## Quick Start
 
+### Prerequisites
+
+- Python **3.11-3.13** recommended
+- Git LFS installed (`git lfs version`)
+
+> Python 3.14 can run the core app, but `onnxruntime` wheels may be unavailable on some platforms. In that case, leaf analysis may require the PyTorch fallback model path.
+
+### Local setup
+
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-dev.txt
 
 git lfs install && git lfs pull
 
-cd app && PORT=5050 python app.py
+cd app && PORT=5050 ../.venv/bin/python app.py
 ```
 
 Open http://127.0.0.1:5050
 
-**Note**: Leaf model runs via `onnxruntime` by default. Regenerate ONNX with `python scripts/export_leaf_onnx.py` if needed.
+**Note**: Leaf model runs via `onnxruntime` when available and `app/leaf_models/model.onnx` exists. Regenerate ONNX with `python scripts/export_leaf_onnx.py` if needed.
 
 ---
 
 ## Running Tests
 
 ```bash
-python -m pytest tests/ -v
+.venv/bin/python -m pytest tests/ -v
+```
+
+---
+
+## Working API Smoke Check
+
+```bash
+curl -sS http://127.0.0.1:5050/api/health
+```
+
+Expected response includes:
+
+```json
+{"status":"ok","service":"fieldsense-api","version":"1.0.0","stage":"research-prototype"}
 ```
 
 ---

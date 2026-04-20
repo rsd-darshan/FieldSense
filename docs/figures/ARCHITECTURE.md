@@ -13,7 +13,8 @@ flowchart TB
     APP[Flask app + factory]
     CROP[sklearn crop pipeline]
     FERT[sklearn fertilizer pipeline]
-    LEAF[Optional ResNet leaf head + torch]
+    LEAF[Leaf inference (onnx default, torch fallback)]
+    SHIM[app/services shims]
     ENG[fieldsense.engine heuristics]
   end
 
@@ -25,8 +26,9 @@ flowchart TB
   API --> APP
   APP --> CROP
   APP --> FERT
-  APP -.->|if torch deps present| LEAF
-  APP --> ENG
+  APP --> LEAF
+  APP --> SHIM
+  SHIM --> ENG
   CROP -.->|labels| ENG
   FERT -.->|labels| ENG
   LEAF -.->|labels| ENG
@@ -44,5 +46,6 @@ flowchart TB
 **Design choices**
 
 - Heuristic **intelligence layer** (`compute_unified`) sits beside ML: same inputs power a health score and risk tier without pretending to be a second trained model.
+- Prediction routes persist both the direct model result (`crop`/`fertilizer`/`disease`) and a separate `unified` rollup row for auditability.
 - **SQLite** keeps the demo deployable without managed Postgres; `/tmp` on serverless implies ephemeral DB unless you plug external storage.
 - **Pickle** for sklearn is a pragmatic artifact format; production hardening would mean pinned sklearn + `category_encoders` versions or ONNX export (see README roadmap).
