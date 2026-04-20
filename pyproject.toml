@@ -7,7 +7,7 @@ name = "fieldsense-research"
 version = "1.0.0"
 description = "Flask UI and API for crop, fertilizer, and leaf agricultural ML models."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.15"
 license = { text = "MIT" }
 dependencies = [
   "flask>=3.0.0",
@@ -16,7 +16,7 @@ dependencies = [
   "category-encoders>=2.6.0",
   "Pillow>=10.0.0",
   "pandas>=2.0.0",
-  "onnxruntime>=1.16.0,<2"
+  "onnxruntime>=1.16.0,<2; python_version < '3.14'"
 ]
 
 [tool.setuptools.packages.find]

@@ -4,6 +4,18 @@ FieldSense — Flask UI + JSON API for agricultural ML models.
 Run from the `app` directory: PORT=5050 python app.py
 """
 import os
+import sys
+from pathlib import Path
+
+APP_DIR = Path(__file__).resolve().parent
+ROOT_DIR = APP_DIR.parent
+SRC_DIR = ROOT_DIR / "src"
+
+# Keep local `cd app && python app.py` startup working without manual PYTHONPATH export.
+for path in (SRC_DIR, APP_DIR):
+    s = str(path)
+    if s not in sys.path:
+        sys.path.insert(0, s)
 
 from factory import create_app
 
